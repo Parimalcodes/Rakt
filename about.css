@@ -1,0 +1,88 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    color: #ececec;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    font-family: sans-serif;
+}
+
+/* Fonts as you already have */
+@font-face {
+    font-family: a;
+    src: url(./assets/fonts/jost-thin.ttf);
+}
+@font-face {
+    font-family: b;
+    src: url(./assets/fonts/sf-pro-display_semibold.ttf);
+}
+@font-face {
+    font-family: c;
+    src: url(./assets/fonts/sf-pro-icons_regular.ttf);
+}
+@font-face {
+    font-family: d;
+    src: url(./assets/fonts/sf-pro-text_semibold.ttf);
+}
+
+/* Navbar */
+#nav3 { 
+    height: 100px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 150px;
+    gap: 50px;
+    position: fixed;
+    top: 0;
+    /* left: 25%; */
+    z-index: 99;
+    font-size: 20px;
+    /* background-color: red; */
+}
+
+/* Content below navbar */
+#page1 {
+    /* background-color: aqua; */
+    height: calc(100vh - 100px); /* 100vh minus nav height */
+    margin-top: 100px; /* Push below the fixed nav */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+}
+
+h3 {
+    max-width: 800px;
+    font-size: 24px;
+    line-height: 1.6;
+}
+
+
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('./assets/about\ us.avif'); /* Use your actual image path */
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+  }
+  
+  .center-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding-top: 100px;
+    z-index: 1;
+  }

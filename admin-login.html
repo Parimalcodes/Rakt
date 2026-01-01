@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="login.css" />
+  <link rel="stylesheet" href="admin-login.css" />
+</head>
+<body>
+  <div id="nav1">
+    <a href="./home.html"><h4>HOME</h4></a>
+    <a href="./login.html"><h4>LOG IN</h4></a>
+    <a href="./signup.html"><h4>SIGN UP</h4></a>
+    <a href="./about.html"><h4>ABOUT US</h4></a>
+  </div>
+     
+  <div class="background-image"></div>
+  
+  <div class="center-wrapper">
+    <div class="login-container">
+      <form class="login-form" onsubmit="return validateAdminLogin(event)">
+        <h2 class="admin-title">Admin Login</h2>
+        
+        <div class="admin-login-container">
+          <label for="adminId">Admin ID</label>
+          <input
+            type="text"
+            id="adminId"
+            name="adminId"
+            required
+            placeholder="Enter Admin ID"
+          />
+
+          <label for="adminPassword">Admin Password</label>
+          <input
+            type="password"
+            id="adminPassword"
+            name="adminPassword"
+            required
+            placeholder="Enter admin password"
+          />
+        </div>
+
+        <button type="submit">Login</button>
+
+        <div class="back-to-home">
+          <a href="home.html">Back to Home</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    async function validateAdminLogin(event) {
+      event.preventDefault();
+      
+      const adminId = document.getElementById("adminId").value.trim();
+      const adminPassword = document.getElementById("adminPassword").value;
+
+      if (!adminId || !adminPassword) {
+        alert("Please enter both admin ID and password");
+        return false;
+      }
+
+      try {
+        console.log('Attempting admin login with:', { adminId, adminPassword });
+        
+        const response = await fetch('http://localhost:3000/api/auth/admin/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ adminId, password: adminPassword })
+        });
+
+        console.log('Admin login response status:', response.status);
+        const data = await response.json();
+        console.log('Admin login response data:', data);
+
+        if (response.ok) {
+          localStorage.setItem('adminToken', data.token);
+          window.location.href = "admin-dashboard.html";
+        } else {
+          alert(data.message || "Invalid admin ID or password");
+        }
+      } catch (error) {
+        console.error('Admin login error:', error);
+        alert("An error occurred during login. Please try again.");
+      }
+
+      return false;
+    }
+  </script>
+</body>
+</html> 

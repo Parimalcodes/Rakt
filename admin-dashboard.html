@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="admin-dashboard.css">
+</head>
+<body>
+  <div class="header">
+    <h1>Admin Dashboard</h1>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <h2>Blood Requests</h2>
+    <div class="filter-buttons">
+      <button class="filter-btn active" onclick="filterRequests('all')">All Requests</button>
+      <button class="filter-btn" onclick="filterRequests('pending')">Pending</button>
+      <button class="filter-btn" onclick="filterRequests('completed')">Completed</button>
+      <button class="filter-btn" onclick="filterRequests('cancelled')">Cancelled</button>
+    </div>
+    <div id="requests-container">
+      <!-- Requests will be loaded here -->
+    </div>
+  </div>
+
+  <!-- Blood Bank Selection Modal -->
+  <div id="bloodBankModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Select Blood Bank</h2>
+        <button class="close-modal" onclick="closeBloodBankModal()">×</button>
+      </div>
+      <div class="blood-bank-list">
+        <div class="blood-bank-item" onclick="selectBloodBank(this, 'navsari-blood-bank')">
+          <h3>Navsari Blood Bank</h3>
+          <p>Address: 123 Main Street, Navsari</p>
+          <p>Contact: +91 9876543210</p>
+        </div>
+        <div class="blood-bank-item" onclick="selectBloodBank(this, 'navsari-city-blood-bank')">
+          <h3>Navsari City Blood Bank</h3>
+          <p>Address: 456 Gandhi Road, Navsari</p>
+          <p>Contact: +91 9876543211</p>
+        </div>
+        <div class="blood-bank-item" onclick="selectBloodBank(this, 'navsari-general-blood-bank')">
+          <h3>Navsari General Blood Bank</h3>
+          <p>Address: 789 Hospital Road, Navsari</p>
+          <p>Contact: +91 9876543212</p>
+        </div>
+      </div>
+      <button id="submitApproval" class="submit-approval" disabled onclick="submitApproval()">Approve Request</button>
+    </div>
+  </div>
+
+  <script>
+    let allRequests = [];
+    let selectedRequestId = null;
+    let selectedBloodBank = null;
+
+    // Function to handle logout
+    function logout() {
+      localStorage.removeItem('adminToken');
+      window.location.href = 'login.html';
+    }
+
+    // Check if admin is logged in
+    if (!localStorage.getItem('adminToken')) {
+      window.location.href = 'login.html';
+    }
+
+    // Function to filter requests
+    function filterRequests(status) {
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const container = document.getElementById('requests-container');
+      container.innerHTML = '';
+
+      let filteredRequests = allRequests;
+      if (status !== 'all') {
+        filteredRequests = allRequests.filter(request => 
+          request.status.toLowerCase() === status
+        );
+      }
+
+      if (filteredRequests.length === 0) {
+        container.innerHTML = '<p>No requests found</p>';
+        return;
+      }
+
+      displayRequests(filteredRequests);
+    }
+
+    // Function to display requests
+    function displayRequests(requests) {
+      const container = document.getElementById('requests-container');
+      container.innerHTML = '';
+
+      if (!requests || requests.length === 0) {
+        container.innerHTML = '<p>No requests found</p>';
+        return;
+      }
+
+      console.log('Displaying requests:', requests.length);
+      requests.forEach(request => {
+        // Debug the request status
+        console.log('Request details:', {
+          id: request._id,
+          status: request.status,
+          isPending: request.status === 'Pending',
+          hasButtons: request.status === 'Pending'
+        });
+
+        const card = document.createElement('div');
+        card.className = 'request-card';
+        
+        // Get the status, default to Pending if not set
+        const status = request.status || 'Pending';
+        const statusClass = `status-${status.toLowerCase()}`;
+        
+        // Get user details if available
+        const userDetails = request.userId ? `
+          <p><span>Requested By:</span> ${request.userId.name}</p>
+          <p><span>User Phone:</span> ${request.userId.phone}</p>
+          <p><span>User Email:</span> ${request.userId.email}</p>
+        ` : '';
+        
+        // Always show buttons for pending requests
+        const actionButtons = status === 'Pending' ? `
+          <div class="action-buttons">
+            <button class="approve-btn" onclick="approveRequest('${request._id}')">Approve</button>
+            <button class="reject-btn" onclick="updateRequestStatus('${request._id}', 'Cancelled')">Reject</button>
+          </div>
+        ` : '';
+        
+        card.innerHTML = `
+          <h3>Request #${request._id}</h3>
+          <div class="request-info">
+            ${userDetails}
+            <p><span>Patient Name:</span> ${request.patient.name}</p>
+            <p><span>Age:</span> ${request.patient.age}</p>
+            <p><span>Contact:</span> ${request.patient.contact}</p>
+            <p><span>Address:</span> ${request.patient.address}</p>
+            <p><span>Blood Group:</span> ${request.bloodDetails.group}</p>
+            <p><span>Component:</span> ${request.bloodDetails.component}</p>
+            <p><span>Hospital:</span> ${request.hospital.name}</p>
+            <p><span>Doctor:</span> ${request.hospital.doctor}</p>
+            <p><span>Ward:</span> ${request.hospital.ward}</p>
+            <p><span>Payment Method:</span> ${request.paymentMethod}</p>
+            <p><span>Payment Status:</span> ${request.paymentStatus ? 'Paid' : 'Unpaid'}</p>
+            <p><span>Status:</span> <span class="status ${statusClass}">${status}</span></p>
+            <p><span>Date:</span> ${new Date(request.createdAt).toLocaleDateString()}</p>
+          </div>
+          ${actionButtons}
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+
+    // Function to load and display requests
+    async function loadRequests() {
+      try {
+        const adminToken = localStorage.getItem('adminToken');
+        if (!adminToken) {
+          console.log('No admin token found');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        console.log('Admin token found:', adminToken.substring(0, 20) + '...');
+        console.log('Fetching orders with token...');
+        
+        const response = await fetch('http://localhost:3000/api/orders', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Received orders:', data);
+        
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid response format: expected array of orders');
+        }
+        
+        allRequests = data;
+        console.log('Number of requests loaded:', allRequests.length);
+        console.log('Request statuses:', allRequests.map(r => ({ 
+          id: r._id, 
+          status: r.status,
+          isPending: r.status === 'Pending'
+        })));
+        
+        // Show all requests by default
+        displayRequests(allRequests);
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        const container = document.getElementById('requests-container');
+        container.innerHTML = `<p>Error loading requests: ${error.message}</p>`;
+      }
+    }
+
+    // Function to update request status
+    async function updateRequestStatus(requestId, status, additionalData = {}) {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          console.error('No admin token found');
+          window.location.href = 'admin.html';
+          return;
+        }
+
+        console.log('Updating request status:', { 
+          requestId, 
+          status,
+          additionalData,
+          token: token.substring(0, 20) + '...'
+        });
+        
+        const response = await fetch(`http://localhost:3000/api/orders/${requestId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ status, ...additionalData })
+        });
+
+        console.log('Status update response:', {
+          status: response.status,
+          statusText: response.statusText
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error updating status:', errorData);
+          throw new Error(errorData.message || 'Failed to update status');
+        }
+
+        const data = await response.json();
+        console.log('Status update successful:', data);
+        
+        // Show success message with blood bank details
+        if (status === 'Completed' && additionalData.approvedBloodBank) {
+          alert(`Request approved successfully!\n\nBlood Bank Details:\n${additionalData.approvedBloodBank.name}\n${additionalData.approvedBloodBank.address}\n${additionalData.approvedBloodBank.contact}`);
+        } else {
+          alert('Request status updated successfully');
+        }
+        
+        // Refresh the requests list
+        loadRequests();
+      } catch (error) {
+        console.error('Error updating request status:', error);
+        alert(`An error occurred while updating the request status: ${error.message}`);
+      }
+    }
+
+    function selectBloodBank(element, bankId) {
+      // Remove selected class from all items
+      document.querySelectorAll('.blood-bank-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked item
+      element.classList.add('selected');
+      selectedBloodBank = bankId;
+      
+      // Enable submit button
+      document.getElementById('submitApproval').disabled = false;
+    }
+
+    function closeBloodBankModal() {
+      document.getElementById('bloodBankModal').style.display = 'none';
+      selectedRequestId = null;
+      selectedBloodBank = null;
+      document.getElementById('submitApproval').disabled = true;
+      document.querySelectorAll('.blood-bank-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+    }
+
+    function submitApproval() {
+      if (!selectedRequestId || !selectedBloodBank) {
+        alert('Please select a blood bank');
+        return;
+      }
+
+      // Get the selected blood bank details
+      const selectedBankElement = document.querySelector('.blood-bank-item.selected');
+      const bankName = selectedBankElement.querySelector('h3').textContent;
+      const bankAddress = selectedBankElement.querySelector('p').textContent.replace('Address: ', '');
+      const bankContact = selectedBankElement.querySelectorAll('p')[1].textContent.replace('Contact: ', '');
+
+      console.log('Submitting approval with blood bank details:', {
+        requestId: selectedRequestId,
+        bankName,
+        bankAddress,
+        bankContact
+      });
+
+      // Update request status with blood bank information
+      updateRequestStatus(selectedRequestId, 'Completed', {
+        approvedBloodBank: {
+          name: bankName,
+          address: bankAddress,
+          contact: bankContact
+        }
+      });
+      closeBloodBankModal();
+    }
+
+    // Update the approve button click handler
+    function approveRequest(requestId) {
+      selectedRequestId = requestId;
+      document.getElementById('bloodBankModal').style.display = 'block';
+    }
+
+    // Add this to check admin login status on page load
+    window.onload = function() {
+      const adminToken = localStorage.getItem('adminToken');
+      if (!adminToken) {
+        console.log('No admin token found, redirecting to login');
+        window.location.href = 'login.html';
+        return;
+      }
+      console.log('Admin logged in, loading requests...');
+      loadRequests();
+    };
+  </script>
+</body>
+</html> 

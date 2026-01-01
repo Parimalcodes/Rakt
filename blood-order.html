@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blood Order Form</title>
+  <link rel="stylesheet" href="blood-order.css" />
+  <style>
+    .payment-methods {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .payment-method {
+      padding: 10px 20px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .payment-method:hover {
+      border-color: #007bff;
+    }
+    .payment-method.selected {
+      border-color: #007bff;
+      background-color: #e6f2ff;
+    }
+    .payment-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+    .payment-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .payment-success {
+      color: green;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="nav2">
+    <a href="./home.html"><h4>HOME</h4></a>
+    <a href="./login.html"><h4>LOG IN</h4></a>
+    <a href="./signup.html"><h4>SIGN UP</h4></a>
+    <a href="./about.html"><h4>ABOUT US</h4></a>
+  </div>
+
+  <div class="blood-order-container">
+    <button class="close-btn" onclick="window.location.href='order.html'">✕</button>
+    <h2>Request Blood</h2>
+    <form id="bloodOrderForm">
+
+      <!-- Section 1: Patient Details -->
+      <fieldset>
+        <legend>Details of Patient</legend>
+
+        <label for="p-name">Full Name</label>
+        <input type="text" id="p-name" name="p-name" required placeholder="Enter full name" />
+
+        <label for="age">Age</label>
+        <input type="number" id="age" name="age" required placeholder="Enter age" min="0" max="120" />
+
+        <label>Sex</label>
+        <div>
+          <input type="radio" id="male" name="sex" value="Male" required />
+          <label for="male">Male</label>
+          <input type="radio" id="female" name="sex" value="Female" />
+          <label for="female">Female</label>
+          <input type="radio" id="other" name="sex" value="Other" />
+          <label for="other">Other</label>
+        </div>
+
+        <label for="contact">Contact Number</label>
+        <input type="tel" id="contact" name="contact" required placeholder="Enter contact number" />
+
+        <label for="address">Address</label>
+        <textarea id="address" name="address" required placeholder="Enter full address"></textarea>
+      </fieldset>
+
+      <!-- Section 2: Hospital Details -->
+      <fieldset>
+        <legend>Details of Hospital</legend>
+
+        <label for="doctor">Doctor's Name</label>
+        <input type="text" id="doctor" name="doctor" required placeholder="Enter doctor's name" />
+
+        <label for="ward">Ward</label>
+        <select id="ward" name="ward" required>
+          <option value="">--Select Ward--</option>
+          <option value="General">General</option>
+          <option value="Semi-Special">Semi-Special</option>
+          <option value="Special">Special</option>
+          <option value="ICU">ICU</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <label for="hospital-name">Hospital Name</label>
+        <input type="text" id="hospital-name" name="hospital-name" required placeholder="Enter hospital name" />
+
+        <label for="hospital-address">Hospital Address</label>
+        <textarea id="hospital-address" name="hospital-address" required placeholder="Enter hospital address"></textarea>
+
+        <label for="hospital-phone">Telephone Number</label>
+        <input type="tel" id="hospital-phone" name="hospital-phone" required placeholder="Enter telephone number" />
+      </fieldset>
+
+      <!-- Section 3: Blood Requisition -->
+      <fieldset>
+        <legend>Details of Blood Requisition</legend>
+
+        <label for="blood-group">Blood Group</label>
+        <select id="blood-group" name="blood-group" required>
+          <option value="">--Select--</option>
+          <option value="A+">A+</option>
+          <option value="B+">B+</option>
+          <option value="O+">O+</option>
+          <option value="AB+">AB+</option>
+          <option value="A-">A-</option>
+          <option value="B-">B-</option>
+          <option value="O-">O-</option>
+          <option value="AB-">AB-</option>
+        </select>
+
+        <label for="component">Select Component</label>
+        <select id="component" name="component" required>
+          <option value="">--Select--</option>
+          <option value="Whole Blood">Whole Blood</option>
+          <option value="Red Cells">Red Cells</option>
+          <option value="FFP">FFP (Fresh Frozen Plasma)</option>
+          <option value="Platelets">Platelets</option>
+          <option value="Cryoprecipitate">Cryoprecipitate</option>
+          <option value="Others">Others</option>
+        </select>
+      </fieldset>
+
+      <!-- Section 4: Payment Method -->
+      <fieldset>
+        <legend>Payment Method</legend>
+        
+        <div class="payment-methods">
+          <div class="payment-method" onclick="selectPaymentMethod('upi')">
+            <img src="./assets/UPI.jpg" alt="UPI" style="width: 100px; height: 100px; object-fit: contain;">
+            <p>UPI</p>
+          </div>
+          <div class="payment-method" onclick="selectPaymentMethod('card')">
+            <img src="./assets/Card.jpg" alt="Card" style="width: 100px; height: 100px; object-fit: contain;">
+            <p>Card</p>
+          </div>
+          <div class="payment-method" onclick="selectPaymentMethod('netbanking')">
+            <img src="./assets/netbanking.png" alt="Net Banking" style="width: 100px; height: 100px; object-fit: contain;">
+            <p>Net Banking</p>
+          </div>
+          <div class="payment-method" onclick="selectPaymentMethod('cod')">
+            <img src="./assets/cod.jpg" alt="COD" style="width: 100px; height: 100px; object-fit: contain;">
+            <p>Cash on Delivery</p>
+          </div>
+        </div>
+
+        <div id="payment-details" style="display: none;">
+          <p>Selected Payment Method: <span id="selected-method"></span></p>
+          <button type="button" onclick="proceedToPayment()" id="proceed-payment-btn">Proceed to Payment</button>
+        </div>
+
+        <label for="payment-confirmed" style="display: none;">
+          <input type="checkbox" id="payment-confirmed" name="payment-confirmed" />
+          I have completed the payment.
+        </label>
+      </fieldset>
+
+      <button type="submit" id="submit-btn" disabled>Place Request</button>
+    </form>
+  </div>
+
+  <!-- Payment Modal -->
+  <div id="paymentModal" class="payment-modal">
+    <div class="payment-content">
+      <h2>Processing Payment</h2>
+      <div id="paymentLoader" style="margin: 20px 0;">
+        <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+      </div>
+      <div id="paymentSuccess" class="payment-success" style="display: none;">
+        Payment Successful!
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const paymentCheckbox = document.getElementById('payment-confirmed');
+    const submitBtn = document.getElementById('submit-btn');
+    const paymentDetails = document.getElementById('payment-details');
+    const selectedMethodSpan = document.getElementById('selected-method');
+    const paymentModal = document.getElementById('paymentModal');
+    const paymentLoader = document.getElementById('paymentLoader');
+    const paymentSuccess = document.getElementById('paymentSuccess');
+    const proceedPaymentBtn = document.getElementById('proceed-payment-btn');
+    let selectedPaymentMethod = '';
+
+    function selectPaymentMethod(method) {
+      // Remove selected class from all methods
+      document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked method
+      event.currentTarget.classList.add('selected');
+      
+      selectedPaymentMethod = method;
+      selectedMethodSpan.textContent = method.toUpperCase();
+      
+      if (method === 'cod') {
+        // For COD, hide payment details and directly enable submit button
+        paymentDetails.style.display = 'none';
+        paymentCheckbox.parentElement.style.display = 'none';
+        paymentCheckbox.checked = true;
+        submitBtn.disabled = false;
+        proceedPaymentBtn.style.display = 'none';
+      } else {
+        // For other payment methods, show payment details
+        paymentDetails.style.display = 'block';
+        paymentCheckbox.parentElement.style.display = 'none';
+        paymentCheckbox.checked = false;
+        submitBtn.disabled = true;
+        proceedPaymentBtn.style.display = 'block';
+      }
+    }
+
+    function proceedToPayment() {
+      if (selectedPaymentMethod === 'cod') {
+        return;
+      }
+
+      paymentModal.style.display = 'block';
+      paymentLoader.style.display = 'block';
+      paymentSuccess.style.display = 'none';
+
+      // Simulate payment processing
+      setTimeout(() => {
+        paymentLoader.style.display = 'none';
+        paymentSuccess.style.display = 'block';
+        
+        // After 2 seconds, close modal and check payment box
+        setTimeout(() => {
+          paymentModal.style.display = 'none';
+          paymentCheckbox.parentElement.style.display = 'block';
+          paymentCheckbox.checked = true;
+          submitBtn.disabled = false;
+        }, 2000);
+      }, 3000);
+    }
+
+    paymentCheckbox.addEventListener('change', () => {
+      submitBtn.disabled = !paymentCheckbox.checked;
+    });
+
+    document.getElementById('bloodOrderForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      if (!paymentCheckbox.checked) {
+        alert("Please complete the payment and check the payment confirmation box before submitting the form.");
+        return;
+      }
+
+      const orderData = {
+        patient: {
+          name: document.getElementById('p-name').value,
+          age: document.getElementById('age').value,
+          sex: document.querySelector('input[name="sex"]:checked').value,
+          contact: document.getElementById('contact').value,
+          address: document.getElementById('address').value
+        },
+        hospital: {
+          doctor: document.getElementById('doctor').value,
+          ward: document.getElementById('ward').value,
+          name: document.getElementById('hospital-name').value,
+          address: document.getElementById('hospital-address').value,
+          phone: document.getElementById('hospital-phone').value
+        },
+        bloodDetails: {
+          group: document.getElementById('blood-group').value,
+          component: document.getElementById('component').value
+        },
+        paymentStatus: paymentCheckbox.checked,
+        paymentMethod: selectedPaymentMethod
+      };
+
+      console.log('Form data prepared:', orderData);
+
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login first');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      console.log('Token found:', token);
+
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      // Make API call to backend
+      console.log('Making API call to:', 'http://localhost:3000/api/orders');
+      console.log('Request headers:', {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      });
+      console.log('Request body:', orderData);
+      
+      fetch('http://localhost:3000/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(orderData)
+      })
+      .then(response => {
+        console.log('Response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers
+        });
+        if (!response.ok) {
+          return response.json().then(data => {
+            console.error('Error response:', data);
+            throw new Error(data.message || 'Failed to submit order');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Success response:', data);
+        if (data.order) {
+          console.log('Order created successfully:', data.order);
+          alert(`Blood Request Submitted Successfully!
+Patient: ${orderData.patient.name}
+Age: ${orderData.patient.age}
+Doctor: ${orderData.hospital.doctor}
+Group: ${orderData.bloodDetails.group}
+Component: ${orderData.bloodDetails.component}`);
+          
+          // Store the order ID in localStorage
+          localStorage.setItem('lastOrderId', data.order._id);
+          console.log('Stored last order ID:', data.order._id);
+          
+          window.location.href = "order.html";
+        } else {
+          console.error('No order in response:', data);
+          throw new Error(data.message || "Failed to submit order");
+        }
+      })
+      .catch(error => {
+        console.error('Error in fetch:', error);
+        alert(error.message || "An error occurred while submitting the order. Please try again.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Place Request';
+      });
+    });
+  </script>
+</body>
+</html>

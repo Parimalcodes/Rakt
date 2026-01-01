@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="login.css" />
+  <style>
+    .signup-link {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 16px;
+      padding: 10px 0;
+    }
+    .signup-link a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 17px;
+    }
+    .signup-link a:hover {
+      text-decoration: underline;
+    }
+    .login-toggle {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .login-toggle button {
+      background: #d32f2f;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    .login-toggle button:hover {
+      background-color: #b71c1c;
+    }
+    .admin-login {
+      display: none;
+      background: rgba(211, 47, 47, 0.05);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .admin-login label {
+      color: #d32f2f;
+      font-weight: 600;
+    }
+    .admin-login input {
+      border: 1px solid #d32f2f;
+    }
+    .admin-login input:focus {
+      border-color: #b71c1c;
+      box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2);
+    }
+    .login-type-indicator {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .admin-indicator {
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+
+  
+  <div id="nav1">
+    <a href="./home.html"><h4>HOME</h4></a>
+    <a href="./login.html"><h4>LOG IN</h4></a>
+    <a href="./signup.html"><h4>SIGN UP</h4></a>
+    <a href="./about.html"><h4>ABOUT US</h4></a>
+  </div>
+     
+  <div class="background-image"></div>
+  
+  <div class="center-wrapper">
+    <div class="login-container">
+      <form class="login-form" onsubmit="return validateLogin(event)">
+        <h2>Login</h2>
+        
+        <div class="login-toggle">
+          <button type="button" onclick="toggleLoginType()" id="toggleBtn">Switch to Admin Login</button>
+        </div>
+
+        <h2 class="login-type-indicator" id="loginTypeIndicator">User Login</h2>
+
+        <div id="userLogin">
+          <label for="phone">Mobile Number</label>
+          <input
+            type="text"
+            id="phone"
+            name="phone"
+            maxlength="10"
+            required
+            placeholder="Enter 10-digit number"
+            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+          />
+
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            placeholder="Enter password"
+          />
+        </div>
+
+        <div id="adminLogin" class="admin-login" style="display: none;">
+          <label for="adminId">Admin ID</label>
+          <input
+            type="text"
+            id="adminId"
+            name="adminId"
+            placeholder="Enter Admin ID"
+          />
+
+          <label for="adminPassword">Admin Password</label>
+          <input
+            type="password"
+            id="adminPassword"
+            name="adminPassword"
+            placeholder="Enter admin password"
+          />
+        </div>
+
+        <button type="submit">Submit</button>
+
+        <div class="signup-link">
+          Didn't sign up? <a href="signup.html">Sign up</a>
+        </div>
+      </form>
+    </div>
+  </div>
+ 
+
+  <script>
+    function toggleLoginType() {
+      const userLogin = document.getElementById('userLogin');
+      const adminLogin = document.getElementById('adminLogin');
+      const toggleBtn = document.getElementById('toggleBtn');
+      const loginTypeIndicator = document.getElementById('loginTypeIndicator');
+      const adminId = document.getElementById('adminId');
+      const adminPassword = document.getElementById('adminPassword');
+      
+      if (userLogin.style.display !== 'none') {
+        // Switching to admin login
+        userLogin.style.display = 'none';
+        adminLogin.style.display = 'block';
+        toggleBtn.textContent = 'Switch to User Login';
+        loginTypeIndicator.textContent = 'Admin Login';
+        loginTypeIndicator.classList.add('admin-indicator');
+        
+        // Make admin fields required
+        adminId.setAttribute('required', '');
+        adminPassword.setAttribute('required', '');
+        
+        // Remove required from user fields
+        document.getElementById('phone').removeAttribute('required');
+        document.getElementById('password').removeAttribute('required');
+      } else {
+        // Switching to user login
+        userLogin.style.display = 'block';
+        adminLogin.style.display = 'none';
+        toggleBtn.textContent = 'Switch to Admin Login';
+        loginTypeIndicator.textContent = 'User Login';
+        loginTypeIndicator.classList.remove('admin-indicator');
+        
+        // Remove required from admin fields
+        adminId.removeAttribute('required');
+        adminPassword.removeAttribute('required');
+        
+        // Make user fields required
+        document.getElementById('phone').setAttribute('required', '');
+        document.getElementById('password').setAttribute('required', '');
+      }
+    }
+
+    // Initialize form on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Make user fields required by default
+      document.getElementById('phone').setAttribute('required', '');
+      document.getElementById('password').setAttribute('required', '');
+    });
+
+    async function validateLogin(event) {
+      event.preventDefault();
+      
+      const userLogin = document.getElementById('userLogin');
+      const adminLogin = document.getElementById('adminLogin');
+
+      if (userLogin.style.display !== 'none') {
+        // User login validation
+        const phone = document.getElementById("phone").value.trim();
+        const password = document.getElementById("password").value;
+
+        // Validate phone number format
+        if (!/^\d{10}$/.test(phone)) {
+          alert("Please enter a valid 10-digit phone number");
+          return false;
+        }
+
+        try {
+          console.log('Attempting user login with:', { phone, password });
+          
+          const response = await fetch('http://localhost:3000/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ phone, password })
+          });
+
+          console.log('Login response status:', response.status);
+          const data = await response.json();
+          console.log('Login response data:', data);
+
+          if (response.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            // Always redirect to order page after successful login
+            window.location.href = "order.html";
+          } else {
+            alert(data.message || "Invalid phone number or password");
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          alert("An error occurred during login. Please try again.");
+        }
+      } else if (adminLogin.style.display !== 'none') {
+        // Admin login validation
+        const adminId = document.getElementById("adminId").value.trim();
+        const adminPassword = document.getElementById("adminPassword").value;
+
+        if (!adminId || !adminPassword) {
+          alert("Please enter both admin ID and password");
+          return false;
+        }
+
+        try {
+          console.log('Attempting admin login with:', { adminId, adminPassword });
+          
+          const response = await fetch('http://localhost:3000/api/auth/admin/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ adminId, password: adminPassword })
+          });
+
+          console.log('Admin login response status:', response.status);
+          const data = await response.json();
+          console.log('Admin login response data:', data);
+
+          if (response.ok) {
+            localStorage.setItem('adminToken', data.token);
+            window.location.href = "admin-dashboard.html";
+          } else {
+            alert(data.message || "Invalid admin ID or password");
+          }
+        } catch (error) {
+          console.error('Admin login error:', error);
+          alert("An error occurred during login. Please try again.");
+        }
+      }
+
+      return false;
+    }
+
+    // Initialize form on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Make user fields required by default
+      document.getElementById('phone').setAttribute('required', '');
+      document.getElementById('password').setAttribute('required', '');
+    });
+  </script>
+</body>
+</html>

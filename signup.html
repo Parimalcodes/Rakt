@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="signup.css" />
+</head>
+<body>
+  <div id="nav2">
+    <a href="./home.html"><h4>HOME</h4></a>
+    <a href="./login.html"><h4>LOG IN</h4></a>
+    <a href="./signup.html"><h4>SIGN UP</h4></a>
+    <a href="./about.html"><h4>ABOUT US</h4></a>
+  </div>
+  <div class="background-image"></div>
+  <div class="signup-container">
+    <form class="signup-form" onsubmit="return validateSignup(event)">
+      <h2>Sign Up</h2>
+
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required placeholder="Enter your name" />
+
+      <label for="email">Email ID</label>
+      <input type="email" id="email" name="email" required placeholder="Enter your email" />
+
+      <label for="dob">Date of Birth</label>
+      <input type="date" id="dob" name="dob" required />
+
+      <label for="phone">Phone Number</label>
+      <input type="text" id="phone" name="phone" maxlength="10" required placeholder="Enter 10-digit phone number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required placeholder="6-8 characters (letters, numbers, special chars)" />
+
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <script>
+    function validateSignup(event) {
+      event.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const dob = document.getElementById("dob").value;
+      const phone = document.getElementById("phone").value;
+      const password = document.getElementById("password").value;
+
+      console.log("Attempting signup with:", { name, email, dob, phone });
+
+      const passwordRegex = /^[A-Za-z0-9!@#$%^&*(),.?":{}|<>]{6,8}$/;
+      const currentDate = new Date();
+      const birthDate = new Date(dob);
+      const age = currentDate.getFullYear() - birthDate.getFullYear();
+      const month = currentDate.getMonth() - birthDate.getMonth();
+
+      // Check if user is at least 18 years old
+      if (age < 18 || (age === 18 && month < 0) || (age === 18 && month === 0 && currentDate.getDate() < birthDate.getDate())) {
+        alert("You must be at least 18 years old to sign up.");
+        return false;
+      }
+
+      // Password validation
+      if (!passwordRegex.test(password)) {
+        alert("Password must be between 6 and 8 characters and can contain letters, numbers, and special characters.");
+        return false;
+      }
+
+      // Make API call to backend
+      fetch('http://localhost:3000/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, dob, phone, password })
+      })
+      .then(response => {
+        console.log("Signup response status:", response.status);
+        return response.json().then(data => {
+          console.log("Signup response data:", data);
+          if (!response.ok) {
+            throw new Error(data.message || 'Signup failed');
+          }
+          return data;
+        });
+      })
+      .then(data => {
+        if (data.token) {
+          // Store token and user data in localStorage
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          console.log("Signup successful, stored token:", data.token);
+          console.log("User data:", data.user);
+          
+          alert("Registration successful! Redirecting to login page...");
+          window.location.href = "login.html";
+        } else {
+          alert(data.message || "Registration failed");
+        }
+      })
+      .catch(error => {
+        console.error('Signup error:', error);
+        alert("An error occurred during registration: " + error.message);
+      });
+
+      return false;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Request</title>
+  <link rel="stylesheet" href="track-request.css" />
+</head>
+<body>
+  <div id="nav1">
+    <a href="./home.html"><h4>HOME</h4></a>
+    <a href="./login.html"><h4>LOG IN</h4></a>
+    <a href="./signup.html"><h4>SIGN UP</h4></a>
+    <a href="./about.html"><h4>ABOUT US</h4></a>
+  </div>
+
+  <div class="container">
+    <h2>Your Blood Requests</h2>
+    
+    <div class="filter-buttons">
+      <button class="filter-btn active" onclick="filterRequests('all')">All Requests</button>
+      <button class="filter-btn" onclick="filterRequests('pending')">Pending</button>
+      <button class="filter-btn" onclick="filterRequests('processing')">Processing</button>
+      <button class="filter-btn" onclick="filterRequests('completed')">Completed</button>
+      <button class="filter-btn" onclick="filterRequests('cancelled')">Cancelled</button>
+    </div>
+
+    <div id="requests-container">
+      <!-- Requests will be loaded here -->
+    </div>
+  </div>
+
+  <script>
+    let allRequests = [];
+
+    // Function to filter requests
+    function filterRequests(status) {
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const container = document.getElementById('requests-container');
+      container.innerHTML = '';
+
+      let filteredRequests = allRequests;
+      if (status !== 'all') {
+        filteredRequests = allRequests.filter(request => 
+          request.status.toLowerCase() === status
+        );
+      }
+
+      if (filteredRequests.length === 0) {
+        container.innerHTML = '<p class="no-requests">No requests found</p>';
+        return;
+      }
+
+      displayRequests(filteredRequests);
+    }
+
+    // Function to display requests
+    function displayRequests(requests) {
+      const container = document.getElementById('requests-container');
+      container.innerHTML = '';
+
+      if (!requests || requests.length === 0) {
+        container.innerHTML = '<p class="no-requests">No requests found</p>';
+        return;
+      }
+
+      // Sort requests by date (newest first)
+      requests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      requests.forEach(request => {
+        const card = document.createElement('div');
+        card.className = 'request-details';
+        
+        const statusClass = `status-${request.status.toLowerCase()}`;
+        const date = new Date(request.createdAt);
+        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        
+        card.innerHTML = `
+          <div class="order-status">
+            <h3>Request #${request._id}</h3>
+            <span class="status ${statusClass}">${request.status}</span>
+          </div>
+          <div class="request-info">
+            <p><span>Patient Name:</span> ${request.patient.name}</p>
+            <p><span>Age:</span> ${request.patient.age}</p>
+            <p><span>Contact:</span> ${request.patient.contact}</p>
+            <p><span>Address:</span> ${request.patient.address}</p>
+            <p><span>Blood Group:</span> ${request.bloodDetails.group}</p>
+            <p><span>Component:</span> ${request.bloodDetails.component}</p>
+            <p><span>Hospital:</span> ${request.hospital.name}</p>
+            <p><span>Doctor:</span> ${request.hospital.doctor}</p>
+            <p><span>Ward:</span> ${request.hospital.ward}</p>
+            <p><span>Payment Method:</span> ${request.paymentMethod}</p>
+            <p><span>Payment Status:</span> ${request.paymentStatus ? 'Paid' : 'Unpaid'}</p>
+          </div>
+          <div class="order-date">
+            Requested on: ${formattedDate}
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+
+    // Function to load and display requests
+    async function loadRequests() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No token found in localStorage');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        console.log('User token found:', token.substring(0, 20) + '...');
+        
+        // Get the last order ID if it exists
+        const lastOrderId = localStorage.getItem('lastOrderId');
+        if (lastOrderId) {
+          console.log('Last order ID found:', lastOrderId);
+        }
+
+        console.log('Fetching orders with token...');
+        
+        const response = await fetch('http://localhost:3000/api/orders', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Received orders:', data);
+        
+        if (!Array.isArray(data)) {
+          console.error('Invalid response format:', data);
+          throw new Error('Invalid response format: expected array of orders');
+        }
+        
+        allRequests = data;
+        console.log('Number of orders found:', allRequests.length);
+        
+        if (allRequests.length === 0) {
+          console.log('No orders found for this user');
+          const container = document.getElementById('requests-container');
+          container.innerHTML = '<p class="no-requests">No blood requests found. You can make a new request from the order page.</p>';
+          return;
+        }
+
+        displayRequests(allRequests);
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        const container = document.getElementById('requests-container');
+        container.innerHTML = `<p class="no-requests">Error loading requests: ${error.message}</p>`;
+      }
+    }
+
+    // Load requests when page loads
+    window.onload = () => {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser) {
+        console.log('No user found in localStorage');
+        localStorage.setItem("returnToTrack", "true");
+        window.location.href = "login.html";
+      } else {
+        console.log('User is logged in:', storedUser);
+        loadRequests();
+      }
+    };
+  </script>
+</body>
+</html> 

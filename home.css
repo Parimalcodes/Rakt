@@ -1,0 +1,78 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+     color: #fff;
+}
+
+html,body{
+    height: 100%;
+    perspective: 800px;
+    width: 100%;
+} 
+
+@font-face {
+    font-family: a;
+    src: url(./assets/fonts/jost-thin.ttf);
+}
+@font-face {
+    font-family: b;
+    src: url(./assets/fonts/sf-pro-display_semibold.ttf);
+}
+@font-face {
+    font-family: c;
+    src: url(./assets/fonts/sf-pro-icons_regular.ttf);
+}
+@font-face {
+    font-family: d;
+    src: url(./assets/fonts/sf-pro-text_semibold.ttf);
+}
+#nav
+{ 
+    height: 100px;
+    width: 100%;
+    /* left: 25%; */
+    /* overflow-x: hidden; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding:0 150px;
+    gap: 50px;
+    /* justify-content: flex-start; */
+    position: fixed;
+    z-index: 99;
+    font-size: 20px;
+    background-color: #5c5252;
+    /* background-image: url(./assets); */
+    background-position: right;
+}
+
+/* #img{
+   background-size: cover;
+} */
+
+#page1{
+    background: #000;
+    position: relative;
+    
+}
+#page1 img{
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+}
+
+#page1>h2{
+    font-size: 30px;
+    color: rgb(0, 0, 0);
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    top: 30%;
+    left: 50%;
+    font-weight:400px;
+    font-size: 50px;
+
+    
+    
+}
